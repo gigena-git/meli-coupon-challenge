@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
 import xyz.gigena.melicouponchallenge.entity.Coupon;
 import xyz.gigena.melicouponchallenge.repository.CouponRepository;
+import xyz.gigena.melicouponchallenge.service.CouponService;
 import xyz.gigena.melicouponchallenge.service.ItemService;
 
 @RestController
@@ -19,16 +19,15 @@ import xyz.gigena.melicouponchallenge.service.ItemService;
 public class CouponController {
 
   @Autowired private CouponRepository couponRepository;
-
   @Autowired private ItemService itemService;
+  @Autowired private CouponService couponService;
 
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<CouponDTO> createCoupon(@RequestBody CouponDTO couponDTO) {
-    ItemSetDTO itemSetDTO =  itemService.getNewItems(couponDTO);
+    ItemSetDTO itemSetDTO = itemService.getNewItems(couponDTO);
     // determine the most optimal list to return to the user
-    // Coupon coupon = couponService.getBestCoupon(itemSetDTO)
-    // couponRepository.save(coupon);
+    Coupon coupon = couponService.getBestCoupon(itemSetDTO, couponDTO.getAmount());
+    //CouponDTO couponResponse = couponRepository.save(coupon);
     return ResponseEntity.ok(couponDTO);
-    
   }
 }

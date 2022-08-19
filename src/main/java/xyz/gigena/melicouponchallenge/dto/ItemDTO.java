@@ -11,4 +11,6 @@ public abstract class ItemDTO {
   public ItemDTO(String name) {
     this.name = name;
   }
+
+  public abstract Double getPrice();
 }
