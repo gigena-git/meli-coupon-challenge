@@ -1,9 +1,9 @@
 package xyz.gigena.melicouponchallenge.dto;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,5 +14,14 @@ import lombok.Setter;
 public class CouponDTO {
   @JsonProperty("item_ids")
   private List<String> itemIds;
-  private Float amount;
+
+  private Double amount;
+
+  public CouponDTO(Set<ItemDTO> items, Double maxAmount) {
+    this.amount = maxAmount;
+    this.itemIds = new ArrayList<String>();
+    for (ItemDTO item : items) {
+      this.itemIds.add(item.getName());
+    }
+  }
 }
