@@ -3,9 +3,9 @@ package xyz.gigena.melicouponchallenge.service;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.stereotype.Service;
-import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
+import xyz.gigena.melicouponchallenge.entity.Coupon;
 
 /**
  * @author Maximiliano Gigena
@@ -18,8 +18,7 @@ public class CouponService {
    * @param amount This is the amount of money the user has to spend.
    * @return The best coupon to use.
    */
-  public CouponDTO getBestCoupon(ItemSetDTO itemSetDTO, Double amount) {
-    long amountLimit = (long) (amount * 100);
+  public Coupon getBestCoupon(ItemSetDTO itemSetDTO, long amountLimit) {
     ItemDTO[] itemsArray = indexItemSet(itemSetDTO);
     long[] prices = getIndexedPrices(itemsArray);
     long[][] dp = knapsackZeroToOne(prices, amountLimit);
@@ -84,9 +83,8 @@ public class CouponService {
    @ @param dp This is the dynamic programming solution dataframe to the 0-1 Knapsack problem.
    * @return The coupon containing the set of items that can be purchased with the given amount.
    */
-  private CouponDTO getValidItems(
+  private Coupon getValidItems(
       ItemDTO[] itemsArray, long[] prices, long amountLimit, long[][] dp) {
-    Double maxAmount = (double) (dp[itemsArray.length][(int) amountLimit]) / 100.0;
     int item = itemsArray.length;
     long amountIncrease = amountLimit;
     Set<ItemDTO> items = new HashSet<>();
@@ -97,6 +95,6 @@ public class CouponService {
       }
       item--;
     }
-    return new CouponDTO(items, maxAmount);
+    return new Coupon(items, amountLimit, dp[itemsArray.length][(int) amountLimit]);
   }
 }

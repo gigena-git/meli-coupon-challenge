@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
+import xyz.gigena.melicouponchallenge.entity.Coupon;
 import xyz.gigena.melicouponchallenge.repository.CouponRepository;
 import xyz.gigena.melicouponchallenge.service.CouponService;
 import xyz.gigena.melicouponchallenge.service.ItemService;
@@ -32,10 +33,11 @@ public class CouponController {
    */
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<CouponDTO> createCoupon(@RequestBody CouponDTO couponRequestDTO) {
+    long amountLimit = (long) (couponRequestDTO.getAmount() * 100);
     ItemSetDTO itemSetDTO = itemService.getNewItems(couponRequestDTO);
-    CouponDTO couponResponseDTO =
-        couponService.getBestCoupon(itemSetDTO, couponRequestDTO.getAmount());
-    // CouponDTO couponResponse = couponRepository.save(coupon);
-    return ResponseEntity.ok(couponResponseDTO);
+    Coupon coupon = couponService.getBestCoupon(itemSetDTO, amountLimit);
+    couponRepository.save(coupon);
+    // return ResponseEntity.ok(couponResponseDTO);
+    return null;
   }
 }
