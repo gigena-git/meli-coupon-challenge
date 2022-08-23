@@ -37,4 +37,12 @@ public class CouponController {
     // CouponDTO couponResponse = couponRepository.save(coupon);
     return ResponseEntity.ok(couponResponseDTO);
   }
+
+  public void setItemService(ItemService itemService) {
+    this.itemService = itemService;
+  }
+
+  public void setCouponService(CouponService couponService) {
+    this.couponService = couponService;
+  }
 }
