@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
-import xyz.gigena.melicouponchallenge.repository.CouponRepository;
 import xyz.gigena.melicouponchallenge.service.CouponService;
 import xyz.gigena.melicouponchallenge.service.ItemService;
 
@@ -20,7 +19,7 @@ import xyz.gigena.melicouponchallenge.service.ItemService;
 @RequestMapping("/coupon")
 public class CouponController {
 
-  @Autowired private CouponRepository couponRepository;
+  // @Autowired private CouponRepository couponRepository;
   @Autowired private ItemService itemService;
   @Autowired private CouponService couponService;
 
