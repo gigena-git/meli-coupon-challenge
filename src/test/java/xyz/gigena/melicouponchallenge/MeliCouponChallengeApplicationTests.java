@@ -14,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import xyz.gigena.melicouponchallenge.controller.CouponController;
@@ -23,36 +25,77 @@ import xyz.gigena.melicouponchallenge.service.ItemService;
 
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-class MeliCouponChallengeApplicationTests {
+@MockitoSettings(strictness = Strictness.LENIENT)
+public class MeliCouponChallengeApplicationTests {
 
   @InjectMocks ItemService itemService;
   @Mock HttpClient httpClient;
   @Mock HttpResponse<String> httpResponse;
+  String[] happyPathRequestIds = {"MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"};
   String happyPathJsonString =
       "[{\"code\": 404, \"body\": {\"id\": \"MLA5\"}},"
           + "{\"code\": 404, \"body\": {\"id\":\"MLA4\"}},"
           + "{\"code\": 404, \"body\": {\"id\": \"MLA3\"}},"
           + "{\"code\": 200, \"body\": {\"id\": \"MLA1120809452\",\"price\":50000}},"
           + "{\"code\": 200, \"body\": {\"id\": \"MLA816019440\",\"price\":116352.03}}]";
+  String emptyJsonString = "[]";
+  String faultyJsonString =
+      "[{\"code\": 404, \"body\": {id\": \"MLA5\"}},"
+          + "{\"code\": 404, \"body\": {\"id\":\"MLA4\"}},"
+          + "{\"code\": 404, \"body\": {\"id\": \"MLA3\"}},"
+          + "{\"code\": 200, \"body\": {\"id\": \"MLA1120809452\",\"price\":50000}},"
+          + "{\"code\": 200, \"body\": {\"id\": \"MLA816019440\",\"price\":116352.03}}]";
 
   @Test
-  void testHappyPath() {
-    CouponDTO couponRequestDTO = createMockRequest();
+  public void testHappyPath() {
+    CouponDTO couponRequestDTO =
+        createMockRequest(happyPathRequestIds, 166352.03, 200, happyPathJsonString);
     CouponController controller = buildController();
     ResponseEntity<CouponDTO> couponResponseDTO = controller.createCoupon(couponRequestDTO);
     Assertions.assertEquals(couponResponseDTO.getBody().getAmount(), 166352.03);
   }
 
-  private CouponDTO createMockRequest() {
-    CouponDTO couponRequestDTO = mockCouponRequest();
+  @Test
+  public void test404ResponseFromItemService() {
+    CouponDTO couponRequestDTO =
+        createMockRequest(happyPathRequestIds, 166352.03, 404, emptyJsonString);
+    CouponController controller = buildController();
+    ResponseEntity<CouponDTO> couponResponseDTO = controller.createCoupon(couponRequestDTO);
+    Assertions.assertEquals(couponResponseDTO.getStatusCodeValue(), 200);
+    Assertions.assertEquals(couponResponseDTO.getBody().getAmount(), 0.0);
+  }
+
+  @Test
+  public void test500ResponseFromItemService() {
+    CouponDTO couponRequestDTO =
+        createMockRequest(happyPathRequestIds, 166352.03, 500, emptyJsonString);
+    CouponController controller = buildController();
+    ResponseEntity<CouponDTO> couponResponseDTO = controller.createCoupon(couponRequestDTO);
+    Assertions.assertEquals(couponResponseDTO.getStatusCodeValue(), 200);
+    Assertions.assertEquals(couponResponseDTO.getBody().getAmount(), 0.0);
+  }
+
+  @Test
+  public void testJsonParsingError() {
+    CouponDTO couponRequestDTO =
+        createMockRequest(happyPathRequestIds, 166352.03, 200, faultyJsonString);
+    CouponController controller = buildController();
+    ResponseEntity<CouponDTO> couponResponseDTO = controller.createCoupon(couponRequestDTO);
+    Assertions.assertEquals(couponResponseDTO.getStatusCodeValue(), 200);
+    Assertions.assertEquals(couponResponseDTO.getBody().getAmount(), 0.0);
+  }
+
+  private CouponDTO createMockRequest(
+      String[] requestJsonIds, Double maxAmount, Integer responseCode, String requestResponse) {
+    CouponDTO couponRequestDTO = mockCouponRequest(requestJsonIds, maxAmount);
     String uriString = "https://api.mercadolibre.com/items?ids=";
     for (String item : couponRequestDTO.getItemIds()) {
       uriString += item + ",";
     }
     uriString = uriString.substring(0, uriString.length() - 1);
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create(uriString)).GET().build();
-    Mockito.when(httpResponse.statusCode()).thenReturn(200);
-    Mockito.when(httpResponse.body()).thenReturn(happyPathJsonString);
+    Mockito.when(httpResponse.statusCode()).thenReturn(responseCode);
+    Mockito.when(httpResponse.body()).thenReturn(requestResponse);
     try {
       Mockito.when(httpClient.send(request, BodyHandlers.ofString())).thenReturn(httpResponse);
     } catch (IOException e) {
@@ -72,15 +115,13 @@ class MeliCouponChallengeApplicationTests {
     return controller;
   }
 
-  private CouponDTO mockCouponRequest() {
+  private CouponDTO mockCouponRequest(String[] requestJsonIds, Double maxAmount) {
     CouponDTO couponRequestDTO = new CouponDTO();
-    couponRequestDTO.setAmount(166352.03);
+    couponRequestDTO.setAmount(maxAmount);
     couponRequestDTO.setItemIds(new ArrayList<String>());
-    couponRequestDTO.getItemIds().add("MLA1120809452");
-    couponRequestDTO.getItemIds().add("MLA816019440");
-    couponRequestDTO.getItemIds().add("MLA3");
-    couponRequestDTO.getItemIds().add("MLA4");
-    couponRequestDTO.getItemIds().add("MLA5");
+    for (String id : requestJsonIds) {
+      couponRequestDTO.getItemIds().add(id);
+    }
     return couponRequestDTO;
   }
 }

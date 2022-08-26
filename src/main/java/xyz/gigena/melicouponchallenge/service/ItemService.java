@@ -13,6 +13,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashSet;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemFoundDTO;
@@ -21,6 +23,8 @@ import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
 
 public class ItemService {
   private HttpClient client;
+
+  private Logger logger = LoggerFactory.getLogger(ItemService.class);
 
   public ItemService(HttpClient cHttpClient) {
     client = cHttpClient;
@@ -33,22 +37,20 @@ public class ItemService {
       HttpResponse<String> response = getItemsFromAPI(couponDTO);
 
       if (response.statusCode() >= 200 && response.statusCode() <= 299) {
+        logger.info("Response from API: " + response.body());
         parseItems(itemSetDTO, itemResponseDTOs, response);
       } else {
-        System.out.println("Bad status code: " + response.statusCode());
+        logger.warn("Bad status code: " + response.statusCode());
         itemSetDTO.setNotFound(couponDTO.getItemIds().size());
       }
-    } catch (JsonMappingException e) {
-      System.out.println("Jackson could not map the response body to the fields in the POJO!");
-      itemSetDTO.setNotFound(couponDTO.getItemIds().size());
     } catch (JsonProcessingException e) {
-      System.out.println("Jackson could not parse the response body!");
+      logger.error("Jackson could not parse the response body!");
       itemSetDTO.setNotFound(couponDTO.getItemIds().size());
     } catch (IOException e) {
-      System.out.println("IO Exception occurred");
+      logger.error("IO Exception occurred");
       itemSetDTO.setNotFound(couponDTO.getItemIds().size());
     } catch (InterruptedException e) {
-      System.out.println("Interrupted Exception occurred");
+      logger.error("Interrupted Exception occurred");
       itemSetDTO.setNotFound(couponDTO.getItemIds().size());
     }
     itemSetDTO.setItems(itemResponseDTOs);
@@ -69,7 +71,7 @@ public class ItemService {
 
   private void parseItems(
       ItemSetDTO itemSetDTO, Set<ItemDTO> itemResponseDTOs, HttpResponse<String> response)
-      throws JsonProcessingException, JsonMappingException {
+      throws JsonProcessingException {
     JsonNode node = new ObjectMapper().readTree(response.body());
     for (int nodeIndex = 0; nodeIndex < node.size(); nodeIndex++) {
       ObjectNode itemNode = (ObjectNode) node.get(nodeIndex);
