@@ -1,5 +1,7 @@
 package xyz.gigena.melicouponchallenge.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,8 @@ import xyz.gigena.melicouponchallenge.service.ItemService;
 @RequestMapping("/coupon")
 public class CouponController {
 
-  // @Autowired private CouponRepository couponRepository;
+  private final Logger logger = LoggerFactory.getLogger(CouponController.class);
+
   @Autowired private ItemService itemService;
   @Autowired private CouponService couponService;
 
@@ -31,10 +34,21 @@ public class CouponController {
    */
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<CouponDTO> createCoupon(@RequestBody CouponDTO couponRequestDTO) {
+    if (couponRequestDTO == null) {
+      logger.error("Null coupon request received");
+      return ResponseEntity.badRequest().build();
+    }
+    if (couponRequestDTO.getItemIds() == null || couponRequestDTO.getItemIds().size() == 0) {
+      logger.error("Empty item list received");
+      return ResponseEntity.badRequest().build();
+    }
+    if (couponRequestDTO.getAmount() == null || couponRequestDTO.getAmount() <= 0) {
+      logger.error("Invalid amount received");
+      return ResponseEntity.badRequest().build();
+    }
     ItemSetDTO itemSetDTO = itemService.getNewItems(couponRequestDTO);
     CouponDTO couponResponseDTO =
         couponService.getBestCoupon(itemSetDTO, couponRequestDTO.getAmount());
-    // CouponDTO couponResponse = couponRepository.save(coupon);
     return ResponseEntity.ok(couponResponseDTO);
   }
 

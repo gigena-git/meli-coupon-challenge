@@ -1,7 +1,6 @@
 package xyz.gigena.melicouponchallenge.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,7 +62,10 @@ public class ItemService {
     for (String item : couponDTO.getItemIds()) {
       uriString += item + ",";
     }
-    uriString = uriString.substring(0, uriString.length() - 1);
+    if (uriString.endsWith(",")) {
+      uriString = uriString.substring(0, uriString.length() - 1);
+    }
+    logger.debug("URI: " + uriString);
     URI uri = URI.create(uriString);
     HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
     return client.send(request, BodyHandlers.ofString());
@@ -75,6 +77,7 @@ public class ItemService {
     JsonNode node = new ObjectMapper().readTree(response.body());
     for (int nodeIndex = 0; nodeIndex < node.size(); nodeIndex++) {
       ObjectNode itemNode = (ObjectNode) node.get(nodeIndex);
+      logger.debug("Item: " + itemNode.toString());
       int itemCode = itemNode.get("code").asInt();
       if (itemCode == 404) {
         itemSetDTO.setNotFound(itemSetDTO.getNotFound() + 1);

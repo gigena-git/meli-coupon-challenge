@@ -2,6 +2,8 @@ package xyz.gigena.melicouponchallenge.service;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import xyz.gigena.melicouponchallenge.dto.CouponDTO;
 import xyz.gigena.melicouponchallenge.dto.ItemDTO;
@@ -13,6 +15,7 @@ import xyz.gigena.melicouponchallenge.dto.ItemSetDTO;
 @Service
 public class CouponService {
 
+  private final Logger logger = LoggerFactory.getLogger(CouponService.class);
   /**
    * @param itemSetDTO This is a set of valid items.
    * @param amount This is the amount of money the user has to spend.
@@ -65,11 +68,20 @@ public class CouponService {
       for (int cent = 0; cent <= amountLimit; cent++) {
         if (p == 0 || cent == 0) {
           dp[p][cent] = 0;
+          logger.debug("p: {}, cent: {}, dp[p][cent]: {}", p, cent, dp[p][cent]);
         } else if (prices[p - 1] <= cent) {
+          logger.debug(
+              "p: {}, cent: {}, dp[p - 1][cent]: {}, dp[p - 1][cent - prices[p - 1]]: {}",
+              p,
+              cent,
+              dp[p - 1][cent],
+              dp[p - 1][(int) (cent - prices[p - 1])]);
           dp[p][cent] =
               Math.max(dp[p - 1][cent], dp[p - 1][(int) (cent - prices[p - 1])] + prices[p - 1]);
+          logger.debug("dp[p][cent]: {}", dp[p][cent]);
         } else {
           dp[p][cent] = dp[p - 1][cent];
+          logger.debug("p: {}, cent: {}, dp[p - 1][cent]: {}", p, cent, dp[p - 1][cent]);
         }
       }
     }
@@ -80,8 +92,8 @@ public class CouponService {
    * @param itemsArray This is the indexed item set.
    * @param prices This is the prices of the items. Necessary to compute substractions to the
    *     amountIncrease.
-   * @param amountLimit This is the amount of money the user has to spend.
-   @ @param dp This is the dynamic programming solution dataframe to the 0-1 Knapsack problem.
+   * @param amountLimit This is the amount of money the user has to spend. @ @param dp This is the
+   *     dynamic programming solution dataframe to the 0-1 Knapsack problem.
    * @return The coupon containing the set of items that can be purchased with the given amount.
    */
   private CouponDTO getValidItems(
@@ -92,6 +104,11 @@ public class CouponService {
     Set<ItemDTO> items = new HashSet<>();
     while (item > 0 && amountIncrease > 0) {
       if (dp[item][(int) amountIncrease] != dp[item - 1][(int) amountIncrease]) {
+        logger.info(
+            "Found item part of optimum solution: "
+                + itemsArray[item - 1].getName()
+                + ", price:"
+                + itemsArray[item - 1].getPrice());
         items.add(itemsArray[item - 1]);
         amountIncrease -= prices[item - 1];
       }
