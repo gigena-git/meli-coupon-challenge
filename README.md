@@ -1,4 +1,4 @@
-# Mercado Libre Coupon Challenge
+[![codecov](https://codecov.io/gh/gigena-git/meli-coupon-challenge/branch/main/graph/badge.svg)](https://codecov.io/gh/gigena-git/meli-coupon-challenge)# Mercado Libre Coupon Challenge
 Solution for Mercado Libre's Java + AWS Challenge
 
 ## Problem and Solution
