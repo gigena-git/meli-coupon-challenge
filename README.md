@@ -28,7 +28,7 @@ In this implementation, the API will:
 * Return the list of items.
 
 ## Requirements
-This solution requires Java 17. If you want to run the solution by yourself, you have to download the jar file located on the [packages section](https://github.com/gigena-git/meli-coupon-challenge/packages/1614325) of the repo, and in your local instance, run:
+This solution requires Java 11. If you want to run the solution by yourself, you have to download the jar file located on the [packages section](https://github.com/gigena-git/meli-coupon-challenge/packages/1614325) of the repo, and in your local instance, run:
 
 ```bash
 java -jar meli-coupon-challenge.jar
