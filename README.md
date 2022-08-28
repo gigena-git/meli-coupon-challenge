@@ -44,3 +44,43 @@ curl -o result.txt \
     --data '{"item_ids": ["MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"], "amount": 166352.03}' \
     http://melichallenge-env.eba-wx55xpus.us-east-1.elasticbeanstalk.com:8080/coupon
 ```
+
+If you are running the API locally, you can try the following queries:
+
+```bash
+# Testing all-invalid items
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1", "MLA2", "MLA3", "MLA4", "MLA5"], "amount": 500}' \
+  http://localhost:8080/coupon
+
+# Testing all-but-one-invalid items, none accepted
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1120809452", "MLA2", "MLA3", "MLA4", "MLA5"], "amount": 500}' \
+  http://localhost:8080/coupon
+
+# Testing with two valid items, no accepted items
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"], "amount": 500}' \
+  http://localhost:8080/coupon
+
+# Testing with two valid items, first item accepted
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"], "amount": 60000}' \
+  http://localhost:8080/coupon
+
+# Testing with two valid items, second item accepted
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"], "amount": 126352.03}' \
+  http://localhost:8080/coupon
+
+# Testing with two valid items, both accepted
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"item_ids": ["MLA1120809452", "MLA816019440", "MLA3", "MLA4", "MLA5"], "amount": 166352.03}' \
+  http://localhost:8080/coupon
+ ```
